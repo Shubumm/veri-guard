@@ -2,7 +2,6 @@ import json
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-import shap
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -16,9 +15,6 @@ PREDICTORS = config['predictors']
 # Load model using native XGBoost format
 model = xgb.Booster()
 model.load_model(os.path.join(BASE_DIR, 'model', 'fraud_model.json'))
-
-# Initialize SHAP explainer
-explainer = shap.TreeExplainer(model)
 
 def predict_fraud(data: dict):
     df = pd.DataFrame([data])
@@ -35,24 +31,30 @@ def predict_fraud(data: dict):
         risk_level = 'LOW'
         action = 'APPROVED'
 
-    # SHAP explanation
-    shap_values = explainer.shap_values(df[PREDICTORS])
-    shap_array = shap_values[0] if isinstance(shap_values, list) else shap_values[0]
+    # SHAP explanation - loaded lazily to avoid startup errors
+    top_features = []
+    try:
+        import shap
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(df[PREDICTORS])
+        shap_array = shap_values[0] if isinstance(shap_values, list) else shap_values[0]
 
-    feature_impacts = []
-    for i, feat in enumerate(PREDICTORS):
-        feature_impacts.append({
-            'feature': feat,
-            'impact': round(float(shap_array[i]), 4),
-            'value': round(float(df[feat].iloc[0]), 4)
-        })
-
-    feature_impacts.sort(key=lambda x: abs(x['impact']), reverse=True)
+        feature_impacts = []
+        for i, feat in enumerate(PREDICTORS):
+            feature_impacts.append({
+                'feature': feat,
+                'impact': round(float(shap_array[i]), 4),
+                'value': round(float(df[feat].iloc[0]), 4)
+            })
+        feature_impacts.sort(key=lambda x: abs(x['impact']), reverse=True)
+        top_features = feature_impacts[:5]
+    except Exception as e:
+        print(f"SHAP error: {e}")
 
     return {
         'fraud_probability': round(prob, 4),
         'risk_level': risk_level,
         'action': action,
         'threshold_used': THRESHOLD,
-        'top_features': feature_impacts[:5]
+        'top_features': top_features
     }
