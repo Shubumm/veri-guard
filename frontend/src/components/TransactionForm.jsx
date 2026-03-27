@@ -62,7 +62,7 @@ export default function TransactionForm({ onResult, onLoading }) {
     e.preventDefault();
     onLoading(true);
     try {
-      const res = await fetch("https://veri-guard.onrender.com//predict", {
+      const res = await fetch("https://veri-guard.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

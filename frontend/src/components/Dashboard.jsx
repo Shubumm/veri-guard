@@ -17,8 +17,8 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       const [s, t] = await Promise.all([
-        fetch("https://veri-guard.onrender.com//stats"),
-        fetch("https://veri-guard.onrender.com//transactions?limit=50"),
+        fetch("https://veri-guard.onrender.com/stats"),
+        fetch("https://veri-guard.onrender.com/transactions?limit=50"),
       ]);
       const sd = await s.json();
       const td = await t.json();
@@ -42,7 +42,7 @@ export default function Dashboard() {
     setSimulating(true);
     simRef.current = setInterval(async () => {
       try {
-        await fetch("https://veri-guard.onrender.com//simulate", { method: "POST" });
+        await fetch("https://veri-guard.onrender.com/simulate", { method: "POST" });
         setSimCount(c => c + 1);
         fetchData();
       } catch (err) { console.error(err); }
