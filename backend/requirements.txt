@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-xgboost
 scikit-learn
 pandas
 numpy
@@ -8,3 +7,4 @@ joblib
 pydantic
 supabase
 shap
+xgboost
